@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Voice Assistant</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 20px;
+  color: #fff;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: #a8a3c7;
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.assistant-container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Orb Animation */
+.orb-wrapper {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.orb {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #7c3aed, #4f46e5, #2563eb);
+  box-shadow: 0 0 60px rgba(124, 58, 237, 0.4), 0 0 120px rgba(79, 70, 229, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 58, 237, 0.3);
+}
+
+.orb-ring-1 {
+  width: 140px;
+  height: 140px;
+}
+
+.orb-ring-2 {
+  width: 160px;
+  height: 160px;
+  border-color: rgba(124, 58, 237, 0.15);
+}
+
+.orb-ring-3 {
+  width: 180px;
+  height: 180px;
+  border-color: rgba(124, 58, 237, 0.08);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .orb {
+    animation: pulse 3s ease-in-out infinite;
+  }
+  .orb-ring-1 {
+    animation: ringPulse 3s ease-in-out infinite;
+  }
+  .orb-ring-2 {
+    animation: ringPulse 3s ease-in-out infinite 0.5s;
+  }
+  .orb-ring-3 {
+    animation: ringPulse 3s ease-in-out infinite 1s;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(124, 58, 237, 0.4), 0 0 120px rgba(79, 70, 229, 0.2); }
+    50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(124, 58, 237, 0.6), 0 0 140px rgba(79, 70, 229, 0.3); }
+  }
+  @keyframes ringPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.6; }
+  }
+}
+
+/* Status */
+.status {
+  font-size: 14px;
+  color: #c4b5fd;
+  text-align: center;
+  min-height: 20px;
+  font-weight: 500;
+}
+
+/* Transcript Area */
+.transcript-area {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 120px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.transcript-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a8a3c7;
+  margin-bottom: 8px;
+}
+
+.transcript-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #e2e0f0;
+  font-family: monospace;
+}
+
+.transcript-text:empty::after {
+  content: "Your speech will appear here...";
+  color: #555;
+  font-style: italic;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.btn {
+  padding: 14px 28px;
+  border-radius: 50px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(124, 58, 237, 0.6);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c4b5fd;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+}
+
+/* Response Area */
+.response-area {
+  width: 100%;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 80px;
+}
+
+.response-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7c3aed;
+  margin-bottom: 8px;
+}
+
+.response-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #e2e0f0;
+}
+
+.response-text:empty::after {
+  content: "Assistant response will appear here...";
+  color: #555;
+  font-style: italic;
+}
+
+/* Features Grid */
+.features {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.feature-icon {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.feature-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c4b5fd;
+  margin-bottom: 4px;
+}
+
+.feature-desc {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.4;
+}
+
+/* Language Selector */
+.lang-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lang-selector label {
+  font-size: 12px;
+  color: #a8a3c7;
+}
+
+.lang-selector select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #e2e0f0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Note banner */
+.note-banner {
+  width: 100%;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 8px;
+}
+
+.note-banner p {
+  font-size: 12px;
+  color: #fbbf24;
+  line-height: 1.5;
+}
+
+.note-banner strong {
+  color: #fcd34d;
+}
+</style>
+</head>
+<body>
+
+<h1>🎙️ Voice Assistant</h1>
+<p class="subtitle">AZA-inspired voice-to-text & assistant interface</p>
+
+<div class="assistant-container">
+
+  <div class="orb-wrapper">
+    <div class="orb-ring orb-ring-3"></div>
+    <div class="orb-ring orb-ring-2"></div>
+    <div class="orb-ring orb-ring-1"></div>
+    <div class="orb"></div>
+  </div>
+
+  <p class="status">Ready to listen — Click "Start Listening" to begin</p>
+
+  <div class="lang-selector">
+    <label>Language:</label>
+    <select>
+      <option value="en-US">English (US)</option>
+      <option value="en-GB">English (UK)</option>
+      <option value="te-IN">Telugu</option>
+      <option value="hi-IN">Hindi</option>
+      <option value="es-ES">Spanish</option>
+      <option value="fr-FR">French</option>
+      <option value="de-DE">German</option>
+      <option value="ja-JP">Japanese</option>
+    </select>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      Start Listening
+    </button>
+    <button class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      Stop
+    </button>
+    <button class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07[MAC_ADDRESS]a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      Speak Response
+    </button>
+  </div>
+
+  <div class="transcript-area">
+    <p class="transcript-label">📝 Your Speech (Transcript)</p>
+    <p class="transcript-text"></p>
+  </div>
+
+  <div class="response-area">
+    <p class="response-label">🤖 Assistant Response</p>
+    <p class="response-text"></p>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">🎤</div>
+      <div class="feature-title">Voice to Text</div>
+      <div class="feature-desc">Real-time speech recognition with continuous listening</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔊</div>
+      <div class="feature-title">Text to Speech</div>
+      <div class="feature-desc">Natural voice responses using browser synthesis</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-title">Multi-Language</div>
+      <div class="feature-desc">Supports English, Telugu, Hindi, Spanish & more</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Hands-Free</div>
+      <div class="feature-desc">No typing needed — just speak naturally</div>
+    </div>
+  </div>
+
+  <div class="note-banner">
+    <p><strong>⚠️ Note:</strong> This is a UI prototype. To make it fully functional, open the Python code (provided below) which serves this page with active JavaScript for Web Speech API integration. Works best in Chrome/Edge browsers.</p>
+  </div>
+
+</div>
+
+</body>
